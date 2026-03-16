@@ -1,0 +1,108 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  background: #0f172a;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: 28px 32px;
+  width: 880px;
+  max-width: 96vw;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  height: 90vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.badge-idle    { background: #334155; color: #94a3b8; }
+.badge-running { background: #1d4ed8; color: #bfdbfe; animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-refresh {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-refresh:hover:not(:disabled) { background: #1d4ed8; }
+.btn-refresh:disabled { background: #1e3a6e; color: #60a5fa; cursor: not-allowed; }
+
+.btn-clear {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-clear:hover { color: #94a3b8; border-color: #475569; }
+
+.log-area {
+  flex: 1;
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow-y: auto;
+  font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #cbd5e1;
+  border: 1px solid #1e293b;
+}
+
+.log-area::-webkit-scrollbar       { width: 6px; }
+.log-area::-webkit-scrollbar-track  { background: transparent; }
+.log-area::-webkit-scrollbar-thumb  { background: #334155; border-radius: 3px; }
+
+.placeholder { color: #334155; font-style: italic; }
+
+.log-line         { white-space: pre-wrap; word-break: break-all; }
+.log-line.log-success { color: #4ade80; }
+.log-line.log-error   { color: #f87171; }
+.log-line.log-warning { color: #fbbf24; }
+.log-line.log-dim     { color: #64748b; }
+.log-line.log-info    { color: #cbd5e1; }

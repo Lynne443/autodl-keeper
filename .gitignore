@@ -1,0 +1,23 @@
+# 敏感 / 运行时文件
+token.json
+browser_profile/
+instance_sample.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.spec
+
+# 构建产物
+build/
+dist/
+
+# 前端
+ui/node_modules/
+ui/dist/
+
+# AI assistant / 系统
+.claude/
+CLAUDE.md
+.DS_Store
+Thumbs.db
