@@ -40,12 +40,15 @@ AutoDL 的实例关机后 15 天没动静就会被释放。这个工具就是帮
 ## 项目结构
 
 ```
-main.py              # 入口，启动 Flask + PyWebView
-app.py               # 后端 API
-autodl_keeper.py     # 核心逻辑：开关机、释放时间计算
-get_token.py         # Playwright 自动登录拿 Token
-build.bat            # 构建脚本
-ui/src/App.tsx       # 前端界面
+├── main.py              # 入口，启动 Flask + PyWebView
+├── app.py               # 后端 API
+├── autodl_keeper.py     # 核心逻辑：开关机、释放时间计算
+├── get_token.py         # Playwright 自动登录拿 Token
+├── build.bat            # 构建脚本
+└── ui/
+    └── src/
+        ├── App.tsx      # 前端界面
+        └── App.css      # 样式
 ```
 
 ## 注意
