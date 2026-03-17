@@ -27,6 +27,33 @@ def _put_log(msg: str):
         _logs.append(msg)
 
 
+def _acquire_running() -> bool:
+    """尝试获取运行锁，成功返回 True"""
+    global _running
+    with _lock:
+        if _running:
+            return False
+        _running = True
+        return True
+
+
+def _release_running():
+    global _running
+    _running = False
+
+
+# ── 自动监控实例 ─────────────────────────
+_monitor = None
+
+
+def get_monitor():
+    global _monitor
+    if _monitor is None:
+        from monitor import AutoMonitor
+        _monitor = AutoMonitor(_put_log, _acquire_running, _release_running)
+    return _monitor
+
+
 def create_app(static_folder: str) -> Flask:
     app = Flask(__name__, static_folder=static_folder)
     app.config['JSON_AS_ASCII'] = False
@@ -47,30 +74,68 @@ def create_app(static_folder: str) -> Flask:
     @app.route('/api/logs')
     def get_logs():
         offset = int(request.args.get('offset', 0))
+        monitor = get_monitor()
         with _lock:
             new_logs = _logs[offset:]
             running = _running
-        return jsonify({'logs': new_logs, 'running': running})
+        return jsonify({
+            'logs': new_logs,
+            'running': running,
+            'monitor_enabled': monitor.enabled,
+        })
 
     # ── 触发刷新 ──────────────────────────
     @app.route('/api/refresh', methods=['POST'])
     def refresh():
-        global _running, _logs
-        if _running:
+        global _logs
+        if not _acquire_running():
             return jsonify({'status': 'already_running'}), 409
-
         with _lock:
             _logs = []
-            _running = True
-
         threading.Thread(target=_do_refresh, daemon=True).start()
         return jsonify({'status': 'started'})
+
+    # ── 监控 API ──────────────────────────
+    @app.route('/api/monitor/status')
+    def monitor_status():
+        m = get_monitor()
+        return jsonify({'enabled': m.enabled, 'next_check': m.next_check_time})
+
+    @app.route('/api/monitor/enable', methods=['POST'])
+    def monitor_enable():
+        m = get_monitor()
+        m.start()
+        return jsonify({'enabled': True})
+
+    @app.route('/api/monitor/disable', methods=['POST'])
+    def monitor_disable():
+        m = get_monitor()
+        m.stop()
+        return jsonify({'enabled': False})
+
+    # ── 关闭动作回调（供前端弹框调用）────────
+    _close_callback = None
+
+    @app.route('/api/_close_action', methods=['POST'])
+    def close_action():
+        action = request.json.get('action', 'minimize')
+        if _close_callback:
+            _close_callback(action)
+        return jsonify({'ok': True})
+
+    app.set_close_callback = lambda fn: app.__dict__.update(_close_callback=fn) or None
+    app._close_callback_ref = lambda: None  # placeholder
+
+    def _set_close_callback(fn):
+        nonlocal _close_callback
+        _close_callback = fn
+
+    app.set_close_callback = _set_close_callback
 
     return app
 
 
 def _do_refresh():
-    global _running
     try:
         from autodl_keeper import (
             AutoDLClient, BOOT_WAIT_SECONDS,
@@ -115,4 +180,4 @@ def _do_refresh():
     except Exception as e:
         _put_log(f"✗ 出错: {e}")
     finally:
-        _running = False
+        _release_running()

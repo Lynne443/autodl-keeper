@@ -4,6 +4,14 @@
 
 ## 怎么用
 
+本软件有两个功能：
+
+**立刻刷新**：点击「▶ 立刻刷新所有实例」按钮，立即对所有实例执行一轮无卡开关机，将释放时间重置回 15 天后。
+
+**自动监控**：打开右上角「自动监控」开关，程序每 24 小时自动检查一次所有实例的剩余时间，发现不足 3 天时自动刷新，无需人工干预。关闭窗口后程序会最小化到系统托盘继续后台运行。
+
+> 首次使用（或删除 `token.json` 后）会自动弹出浏览器，用手机号或扫码登录 AutoDL 即可，无需其他操作，Token 会自动保存到本地，之后不再需要登录。
+
 ### 直接下载
 
 去 [Releases](../../releases) 下载最新版，解压整个文件夹，双击 `AutoDL.exe` 运行。
@@ -24,10 +32,20 @@ build.bat
 
 ### 开发调试
 
+需要 Python 3.11+、Node.js 18+。
+
 ```bash
-pip install flask pywebview playwright requests
+git clone https://github.com/Lynne443/autodl-keeper.git
+cd autodl-keeper
+
+# 安装 Python 依赖
+pip install -r requirements.txt
 playwright install chromium
+
+# 构建前端
 cd ui && npm install && npm run build && cd ..
+
+# 启动
 python main.py
 ```
 
@@ -40,10 +58,12 @@ AutoDL 的实例关机后 15 天没动静就会被释放。这个工具就是帮
 ## 项目结构
 
 ```
-├── main.py              # 入口，启动 Flask + PyWebView
+├── main.py              # 入口，启动 Flask + PyWebView + 系统托盘
 ├── app.py               # 后端 API
+├── monitor.py           # 自动监控线程
 ├── autodl_keeper.py     # 核心逻辑：开关机、释放时间计算
 ├── get_token.py         # Playwright 自动登录拿 Token
+├── requirements.txt     # Python 依赖
 ├── build.bat            # 构建脚本
 └── ui/
     └── src/

@@ -14,7 +14,7 @@ echo OK: React UI built
 
 echo.
 echo [2/4] Installing Python deps...
-pip install flask pywebview playwright pyinstaller -q
+pip install flask pywebview playwright pyinstaller pystray Pillow -q
 if errorlevel 1 ( echo ERROR: pip install failed & pause & exit /b 1 )
 
 echo.
@@ -43,6 +43,7 @@ pyinstaller --onedir --windowed ^
   --add-data "ui/dist;ui/dist" ^
   --add-data "autodl_keeper.py;." ^
   --add-data "get_token.py;." ^
+  --add-data "monitor.py;." ^
   --add-data "%CHROMIUM_PATH%;playwright/driver/package/.local-browsers/%CHROMIUM_NAME%" ^
   --hidden-import webview.platforms.edgechromium ^
   --hidden-import webview.platforms.winforms ^
@@ -50,6 +51,8 @@ pyinstaller --onedir --windowed ^
   --hidden-import engineio.async_drivers.threading ^
   --hidden-import playwright ^
   --hidden-import playwright.async_api ^
+  --hidden-import pystray._impl.win32 ^
+  --hidden-import PIL ^
   main.py
 if errorlevel 1 ( echo ERROR: PyInstaller failed & pause & exit /b 1 )
 

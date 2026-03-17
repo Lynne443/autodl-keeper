@@ -16,6 +16,7 @@ function classifyLine(text: string): LogLine['type'] {
 export default function App() {
   const [logs, setLogs] = useState<LogLine[]>([])
   const [running, setRunning] = useState(false)
+  const [monitorEnabled, setMonitorEnabled] = useState(false)
   const offsetRef = useRef(0)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const logEndRef = useRef<HTMLDivElement>(null)
@@ -24,13 +25,20 @@ export default function App() {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [logs])
 
+  // 初始化时获取监控状态
+  useEffect(() => {
+    fetch('/api/monitor/status')
+      .then(r => r.json())
+      .then(d => setMonitorEnabled(d.enabled))
+      .catch(() => {})
+  }, [])
+
   const stopPolling = () => {
     if (pollRef.current) {
       clearInterval(pollRef.current)
       pollRef.current = null
     }
   }
-
   const startPolling = () => {
     stopPolling()
     pollRef.current = setInterval(async () => {
@@ -45,8 +53,13 @@ export default function App() {
           setLogs(prev => [...prev, ...newLines])
           offsetRef.current += data.logs.length
         }
-        if (!data.running) {
+        setMonitorEnabled(data.monitor_enabled)
+        // 只有手动刷新结束且监控未开启时才停止轮询
+        if (!data.running && !data.monitor_enabled) {
           stopPolling()
+          setRunning(false)
+        }
+        if (!data.running) {
           setRunning(false)
         }
       } catch {
@@ -62,6 +75,15 @@ export default function App() {
     setRunning(true)
     await fetch('/api/refresh', { method: 'POST' })
     startPolling()
+  }
+
+  const toggleMonitor = async () => {
+    const endpoint = monitorEnabled ? '/api/monitor/disable' : '/api/monitor/enable'
+    const res = await fetch(endpoint, { method: 'POST' })
+    const data = await res.json()
+    setMonitorEnabled(data.enabled)
+    // 开启监控后启动轮询以显示监控日志
+    if (data.enabled && !pollRef.current) startPolling()
   }
 
   return (
@@ -80,6 +102,13 @@ export default function App() {
         {!running && logs.length > 0 && (
           <button className="btn-clear" onClick={() => setLogs([])}>清空日志</button>
         )}
+        <label className="toggle-monitor">
+          <input type="checkbox" checked={monitorEnabled} onChange={toggleMonitor} />
+          <span className="toggle-slider" />
+          <span className="toggle-label">
+            自动监控 {monitorEnabled ? '已开启' : '已关闭'}
+          </span>
+        </label>
       </div>
 
       <div className="log-area">

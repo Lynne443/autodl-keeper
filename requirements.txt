@@ -1,0 +1,6 @@
+flask
+pywebview
+playwright
+requests
+pystray
+Pillow
